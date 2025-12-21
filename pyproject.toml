@@ -62,3 +62,9 @@ git_describe_command = "git describe --dirty --tags --long --match v* --first-pa
 [build-system]
 requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
+
+[tool.uv]
+dev-dependencies = [
+    "build>=1.0.0",
+]
+managed = true
