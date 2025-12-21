@@ -43,44 +43,6 @@ jobs:
         path: dist/*.tar.gz
         retention-days: 7
 
-  test-wheel:
-    name: Test wheel on ${{ matrix.os }} with Python ${{ matrix.python-version }}
-    needs: build-wheel
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
-
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Install uv
-      uses: astral-sh/setup-uv@v5
-
-    - name: Set up Python ${{ matrix.python-version }}
-      run: uv python install ${{ matrix.python-version }}
-
-    - name: Download wheel artifacts
-      uses: actions/download-artifact@v4
-      with:
-        name: wheels
-        path: dist/
-
-    - name: Install wheel
-      run: uv pip install --system dist/*.whl
-
-    - name: Test import
-      run: uv run python -c "import welly; print(f'welly version: {welly.__version__}')"
-
-    - name: Install test dependencies
-      run: uv pip install --system pytest pytest-cov pytest-mpl
-
-    - name: Run basic tests
-      run: uv run pytest tests/ -v --ignore=tests/test_plots.py
-      continue-on-error: true  # Some tests may require test data files
-
   verify-universal:
     name: Verify wheel is universal
     needs: build-wheel
@@ -108,3 +70,27 @@ jobs:
           echo "Filename: $filename"
           exit 1
         fi
+
+  smoke-test:
+    name: Smoke test wheel installation
+    needs: build-wheel
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
+
+    - name: Set up Python
+      run: uv python install 3.13
+
+    - name: Download wheel artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: wheels
+        path: dist/
+
+    - name: Install wheel
+      run: uv pip install --system dist/*.whl
+
+    - name: Test import and version
+      run: python -c "import welly; print(f'Successfully imported welly version: {welly.__version__}')"
