@@ -96,9 +96,10 @@ jobs:
         name: wheels
         path: dist/
 
-    - name: Install wheel
-      run: uv pip install --system dist/*.whl
-
-    - name: Test import and version
+    - name: Install wheel and test
       run: |
-        python -c "import welly; print(f'Successfully imported welly version: {welly.__version__}')"
+        # Install the wheel using uv (creates a virtual environment automatically)
+        uv pip install dist/*.whl
+
+        # Test import and version
+        uv run python -c "import welly; print(f'Successfully imported welly version: {welly.__version__}')"
