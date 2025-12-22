@@ -99,6 +99,7 @@ jobs:
     - name: Install wheel and test
       run: |
         # Install the wheel using uv (creates a virtual environment automatically)
+        uv venv
         uv pip install dist/*.whl
 
         # Test import and version
