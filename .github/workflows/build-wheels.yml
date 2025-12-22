@@ -55,21 +55,28 @@ jobs:
         name: wheels
         path: dist/
 
-    - name: Install wheel tools
-      run: pip install wheel-inspect
-
-    - name: Inspect wheel
+    - name: Verify wheel is universal
       run: |
-        wheel-inspect dist/*.whl
+        # List wheel contents
+        echo "Wheel file:"
+        ls -lh dist/*.whl
+
         # Verify the wheel is tagged as py3-none-any (universal)
         filename=$(ls dist/*.whl)
+        echo "Filename: $filename"
+
         if [[ $filename == *"py3-none-any"* ]]; then
           echo "✓ Wheel is universal (py3-none-any)"
         else
-          echo "✗ Warning: Wheel is not universal"
-          echo "Filename: $filename"
+          echo "✗ Error: Wheel is not universal"
+          echo "Expected 'py3-none-any' in filename but got: $filename"
           exit 1
         fi
+
+        # Inspect wheel metadata using unzip
+        echo ""
+        echo "Wheel metadata:"
+        unzip -p dist/*.whl "*.dist-info/WHEEL" || echo "Could not extract WHEEL metadata"
 
   smoke-test:
     name: Smoke test wheel installation
