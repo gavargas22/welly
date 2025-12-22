@@ -1112,8 +1112,9 @@ class Curve(object):
             data[base:] = f(np.copy(self.df.values[base:]))  # See above
         else:
             for top, base, val in zip(tops[:-1], tops[1:], vals[:-1]):
-                data[top:base] = values[int(val)]
-            data[base:] = values[int(vals[-1])]  # See above
+                # Use .item() to safely convert numpy scalars to Python int
+                data[top:base] = values[int(np.asarray(val).item())]
+            data[base:] = values[int(np.asarray(vals[-1]).item())]  # See above
 
         new_curve.df.iloc[:, :] = data
 

@@ -1,11 +1,12 @@
-# This workflow builds packages and publishes them when a release is created
+# This workflow builds packages and publishes them when code is pushed to main
 # It uploads artifacts to the GitHub release and optionally to PyPI
 
 name: Build and Publish Release
 
 on:
-  release:
-    types: [ published ]
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -41,7 +42,7 @@ jobs:
     needs: [build]
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # Required to upload to releases
+      contents: write  # Required to create/update releases
 
     steps:
     - name: Download build artifacts
@@ -50,11 +51,35 @@ jobs:
         name: dist-packages
         path: dist/
 
-    - name: Upload wheel and sdist to GitHub Release
+    - name: Get package version
+      id: version
+      run: |
+        # Extract version from wheel filename
+        WHEEL_FILE=$(ls dist/*.whl)
+        VERSION=$(echo $WHEEL_FILE | sed -n 's/.*welly-\([0-9.]*\).*/\1/p')
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Package version: $VERSION"
+
+    - name: Create/Update GitHub Release
       uses: softprops/action-gh-release@v2
       with:
+        tag_name: v${{ steps.version.outputs.version }}
+        name: Release v${{ steps.version.outputs.version }}
+        body: |
+          Automated release from commit ${{ github.sha }}
+
+          ## Artifacts
+          - Python wheel (universal)
+          - Source distribution (sdist)
+
+          ## Installation
+          ```bash
+          pip install welly==${{ steps.version.outputs.version }}
+          ```
         files: dist/*
         fail_on_unmatched_files: true
+        draft: false
+        prerelease: false
 
   publish-to-pypi:
     name: Publish to PyPI
