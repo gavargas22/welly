@@ -1,4 +1,6 @@
-# This workflow builds packages and publishes them when code is pushed to main
+# This workflow builds packages and publishes them when:
+# - A version tag (v*) is pushed
+# - Code is pushed to main/master branch
 # It uploads artifacts to the GitHub release and optionally to PyPI
 
 name: Build and Publish Release
@@ -6,6 +8,9 @@ name: Build and Publish Release
 on:
   push:
     branches: [ main, master ]
+    tags:
+      - 'v*'        # Trigger on version tags like v0.5.5, v1.0.0, etc.
+      - 'v*.*.*'    # Also match semantic version tags
   workflow_dispatch:
 
 jobs:
